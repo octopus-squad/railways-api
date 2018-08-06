@@ -79,6 +79,7 @@ def get_lines():
     lines = list(db.lines.find())
     return jsonify(lines)
 
+
 @app.route('/lines/<id>', methods=['GET'])
 def get_line(id):
         line = db.lines.find_one({"_id":id})
@@ -88,7 +89,6 @@ def get_line(id):
             error_response = jsonify({"error": "{} doesn't exist in database".format(id)})
             error_response.status_code = 400
             return error_response
-
 
 
 @app.route('/lines', methods=['POST'])
@@ -109,3 +109,48 @@ def add_line():
         error_response.status_code = 400
         return error_response
     
+
+@app.route('/lines/<id>', methods=['DELETE'])
+def delete_line(id):
+    db.lines.remove({"_id": id})
+    return jsonify({"id": id})
+
+
+@app.route('/lines/<id>', methods=['PUT'])
+def update_line(id):
+    json_data = request.get_json()
+    db.lines.update(
+        {"_id": id},
+        {"$set":
+         {
+             "name": json_data["name"],
+             "stops": json_data["stops"]
+         }
+         }
+    )
+    return jsonify({"id": id})
+
+
+@app.route('/trips', methods=['GET'])
+def get_trips():
+    trips = list(db.trips.find())
+    return jsonify(trips)
+
+
+# @app.route('/trips/<id>', methods=['GET'])
+# def get_trips(id):
+#         trip = db.trips.find_one({"_id":id})
+#         if trip is not None:
+#             return jsonify(trip)
+#         else:
+#             error_response = jsonify({"error": "{} doesn't exist in database".format(id)})
+#             error_response.status_code = 400
+#             return error_response
+
+
+@app.route('/search/stations', methods=['GET'])
+def search_stations():
+    arg = request.args['arg']
+    regex=re.compile(".*({}).*".format(arg))
+    station = list(db.stations.find({ "city": regex })) 
+    return jsonify(station)
